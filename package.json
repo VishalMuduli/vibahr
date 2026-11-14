@@ -1,0 +1,25 @@
+{
+  "name": "viba-hr",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^6.0.5"
+  },
+  "dependencies": {
+<<<<<<< HEAD
+    "firebase": "^12.19.0",
+=======
+    "firebase": "^12.13.0",
+>>>>>>> de960023b2c2da8fa0d8ee800dd837b3893c9dcb
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  }
+}

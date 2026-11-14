@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+<<<<<<< HEAD
+    // Authentication helpers
+    function signedIn() { 
+      return request.auth != null; 
+    }
+    
+=======
+    function signedIn() { return request.auth != null; }
+>>>>>>> de960023b2c2da8fa0d8ee800dd837b3893c9dcb
+    function hasTenant(tenantId, companyId) {
+      return signedIn()
+        && request.auth.token.tenantId == tenantId
+        && request.auth.token.companyId == companyId;
+    }
+<<<<<<< HEAD
+
+    function isSuperAdmin() {
+      return signedIn() && request.auth.token.role == 'super_admin';
+    }
+
+    function isCompanyAdmin(tenantId, companyId) {
+      return hasTenant(tenantId, companyId)
+        && request.auth.token.role in ['super_admin', 'company_admin'];
+    }
+
+    function isHROrAdmin(tenantId, companyId) {
+=======
+    function isAdmin(tenantId, companyId) {
+>>>>>>> de960023b2c2da8fa0d8ee800dd837b3893c9dcb
+      return hasTenant(tenantId, companyId)
+        && request.auth.token.role in ['super_admin', 'company_admin', 'hr_manager'];
+    }
+
+<<<<<<< HEAD
+    function isPayrollOrAdmin(tenantId, companyId) {
+      return hasTenant(tenantId, companyId)
+        && request.auth.token.role in ['super_admin', 'company_admin', 'payroll_manager'];
+    }
+
+    function isManagerOrAdmin(tenantId, companyId) {
+      return hasTenant(tenantId, companyId)
+        && request.auth.token.role in ['super_admin', 'company_admin', 'hr_manager', 'manager'];
+    }
+
+    // Public Registration Collection (No cross-tenant access)
+    match /registrationRequests/{requestId} {
+      allow create: if true; // Public onboarding form (rate-limited via Cloud Functions/App Check)
+      allow read, update: if isSuperAdmin();
+      allow delete: if false;
+    }
+
+    // Tenant & Company Hierarchy
+    match /tenants/{tenantId}/companies/{companyId} {
+      allow read: if hasTenant(tenantId, companyId) || isSuperAdmin();
+      allow write: if isSuperAdmin();
+
+      // Employees Directory
+      match /employees/{employeeId} {
+        allow read: if hasTenant(tenantId, companyId);
+        allow create, update: if isHROrAdmin(tenantId, companyId);
+        allow delete: if isCompanyAdmin(tenantId, companyId);
+      }
+
+      // Attendance Records & Biometric Logs
+      match /attendance/{attendanceId} {
+        allow read: if hasTenant(tenantId, companyId);
+        allow create, update: if isHROrAdmin(tenantId, companyId) || (signedIn() && request.auth.uid == request.resource.data.userId);
+        allow delete: if isCompanyAdmin(tenantId, companyId);
+      }
+
+      // Biometric Hardware Devices
+      match /biometricDevices/{deviceId} {
+        allow read: if hasTenant(tenantId, companyId);
+        allow write: if isCompanyAdmin(tenantId, companyId);
+      }
+
+      // Leave Requests
+      match /leaves/{leaveId} {
+        allow read: if hasTenant(tenantId, companyId);
+        allow create: if hasTenant(tenantId, companyId);
+        allow update: if isManagerOrAdmin(tenantId, companyId) || (signedIn() && request.auth.uid == resource.data.employeeId);
+        allow delete: if isCompanyAdmin(tenantId, companyId);
+      }
+
+      // Payroll Runs & Payslips (Privileged: Only Payroll Lead or Admins)
+      match /payrollRuns/{runId} {
+        allow read, write: if isPayrollOrAdmin(tenantId, companyId);
+        
+        match /payslips/{slipId} {
+          allow read: if isPayrollOrAdmin(tenantId, companyId) || (signedIn() && request.auth.uid == resource.data.employeeId);
+          allow write: if isPayrollOrAdmin(tenantId, companyId);
+        }
+      }
+
+      // Audit Logs (Immutable: Server-only write)
+      match /auditLogs/{logId} {
+        allow read: if isCompanyAdmin(tenantId, companyId);
+        allow write: if false;
+      }
+    }
+
+    // Default deny all other paths
+    match /{document=**} { 
+      allow read, write: if false; 
+    }
+=======
+    match /tenants/{tenantId}/companies/{companyId} {
+      allow read: if hasTenant(tenantId, companyId);
+      allow write: if request.auth.token.role == 'super_admin';
+    }
+    match /tenants/{tenantId}/companies/{companyId}/employees/{employeeId} {
+      allow read: if hasTenant(tenantId, companyId);
+      allow create, update: if isAdmin(tenantId, companyId);
+      allow delete: if request.auth.token.role in ['super_admin', 'company_admin'];
+    }
+    match /tenants/{tenantId}/companies/{companyId}/attendance/{attendanceId} {
+      allow read: if hasTenant(tenantId, companyId);
+      allow create, update: if isAdmin(tenantId, companyId) || request.auth.uid == resource.data.userId;
+    }
+    match /{document=**} { allow read, write: if false; }
+>>>>>>> de960023b2c2da8fa0d8ee800dd837b3893c9dcb
+  }
+}

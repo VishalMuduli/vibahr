@@ -1,0 +1,40 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+<<<<<<< HEAD
+    // Tenant-isolated storage bucket structure
+    match /tenants/{tenantId}/companies/{companyId}/{folder}/{fileName} {
+      allow read: if request.auth != null
+        && request.auth.token.tenantId == tenantId
+        && request.auth.token.companyId == companyId;
+      
+      // Enforce file size limit (15MB max) and authenticated tenant scope
+      allow write: if request.auth != null
+        && request.auth.token.tenantId == tenantId
+        && request.auth.token.companyId == companyId
+        && request.resource.size < 15 * 1024 * 1024;
+    }
+
+    // Public Assets (e.g. company logo, app icons)
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.role == 'super_admin';
+    }
+
+    match /{allPaths=**} { 
+      allow read, write: if false; 
+    }
+=======
+    match /tenants/{tenantId}/companies/{companyId}/{allPaths=**} {
+      allow read: if request.auth != null
+        && request.auth.token.tenantId == tenantId
+        && request.auth.token.companyId == companyId;
+      allow write: if request.auth != null
+        && request.auth.token.tenantId == tenantId
+        && request.auth.token.companyId == companyId
+        && request.resource.size < 10 * 1024 * 1024;
+    }
+    match /{allPaths=**} { allow read, write: if false; }
+>>>>>>> de960023b2c2da8fa0d8ee800dd837b3893c9dcb
+  }
+}
